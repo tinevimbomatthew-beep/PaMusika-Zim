@@ -31,6 +31,7 @@ function saveToCloud(){
   fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved to Cloud - Everyone sees it!"});
 }
 function loadFromCloud(){
+  renderAll();document.getElementById('syncStatus').textContent='';
   if(FIREBASE_URL.indexOf("PASTE")!==-1){renderAll();return}
   document.getElementById('syncStatus').innerText="⏳ Loading sellers from Cloud...";
   fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){
