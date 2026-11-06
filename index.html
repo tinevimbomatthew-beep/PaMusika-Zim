@@ -5,13 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PaMusika - Zimbabwe's Biggest Marketplace</title>
 <style>
+*{box-sizing:border-box}
 body{font-family:Arial;margin:0;background:#fff}
-header{background:#008751;color:#fff;text-align:center;padding:16px 12px}header h1{margin:0;font-size:32px;cursor:pointer;user-select:none}header p{margin:4px 0;font-size:15px}
+header{background:#008751;color:#fff;text-align:center;padding:16px 12px}header h1{margin:0;font-size:32px}header p{margin:4px 0;font-size:15px}
 .waTop{background:#008751;padding:12px;text-align:center;border-top:1px solid #fff}.waTop a{color:#fff;font-weight:bold;text-decoration:none}
-nav{display:flex;gap:5px;padding:10px;background:#008751} .navBtn{flex:1;padding:12px;border:2px solid #fff;background:#008751;color:#fff;font-weight:bold;border-radius:8px}.activeBtn{background:#00c853!important;color:#fff!important}
-.tab{padding:10px}.hidden{display:none}
-input,textarea,select{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
-button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:2px solid #008751;border-radius:6px;font-weight:bold}
+nav{display:flex;gap:5px;padding:10px;background:#008751}
+.navBtn{flex:1;padding:12px;border:2px solid #fff;background:#008751;color:#fff;font-weight:bold;border-radius:8px;cursor:pointer}
+.activeBtn{background:#00c853!important}
+.tab{padding:10px}.hidden{display:none!important}
+input,textarea,select{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px}
+button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:2px solid #008751;border-radius:6px;font-weight:bold;cursor:pointer}
 table{width:100%;border-collapse:collapse;font-size:13px} th{background:#008751;color:#fff;padding:8px;text-align:left} td{border-bottom:1px solid #ddd;padding:8px} tr:nth-child(even){background:#f0f9f2}
 .card{background:#f0f9f2;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #008751}
 .ecocashBox{background:#f0f9f2;border:2px dashed #008751;padding:12px;border-radius:8px;text-align:center}
@@ -24,17 +27,5 @@ video{width:100%;border-radius:8px;background:#000}
 .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dashCard{background:#008751;color:#fff;padding:14px;border-radius:10px;text-align:center}
 .dashCard b{font-size:22px;display:block}
-.dashCard span{font-size:12px}
-.lowCard{background:#f0f9f2;border:2px solid #008751;padding:10px;border-radius:8px;margin:6px 0}
-.statRow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
 </style>
-<script>
-var FIREBASE_URL="https://pamusika-zimbabwe-e4cec-default-rtdb.firebaseio.com";
-var sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];
-var products=[
-{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"1234"},
-{name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"5678"}
-];
-var cart=[];var balance=0;var lastReceipt="";var scannerStream=null;var sales=[];var totalSold=0;var logoTaps=0;var logoTimer=null;
-function saveToCloud(){var el=document.getElementById('syncStatus');if(el)el.innerText="⏳ Saving...";fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance,sales:sales,totalSold:totalSold})}).then(function(){if(el)el.innerText="✅ Saved - Everyone sees it!"}).catch(function(){if(el)el.innerText="⚠️ Offline";});}
-function 
+</head
