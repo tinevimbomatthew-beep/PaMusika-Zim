@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PaMusika - Zimbabwe</title>
+<title>PaMusika - Zimbabwe Marketplace</title>
 <style>
 body{font-family:Arial;margin:0;background:#f2f2f2}
 header{background:#008751;color:#fff;text-align:center;padding:12px}header h1{margin:0}
@@ -11,20 +11,25 @@ header{background:#008751;color:#fff;text-align:center;padding:12px}header h1{ma
 .top{display:flex;justify-content:space-between;padding:10px;font-weight:bold}.active{background:#00e676;color:#000;padding:5px 10px;border-radius:20px}
 nav{display:flex;gap:4px;padding:10px;background:#fff;flex-wrap:wrap}.navBtn{flex:1;padding:10px;border:none;border-radius:8px;background:#eee;font-weight:bold;font-size:13px}.activeBtn{background:#008751;color:#fff}
 .tab{padding:12px}.hidden{display:none}
-input,select{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
+input,select,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:8px;box-sizing:border-box}
 button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:none;border-radius:8px;font-weight:bold}
 .waBtn{background:#25D366!important}.card{background:#fff;padding:12px;margin:8px 0;border-radius:10px}
 .ecocashBox{background:#fff3e0;border:2px dashed #ff9800;padding:12px;border-radius:10px;text-align:center}
 .cityRow{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.cityBtn{width:auto;padding:8px 12px;border-radius:20px;background:#fff;border:1px solid #008751;color:#008751;font-size:12px}.cityActive{background:#008751!important;color:#fff!important}
 .footer{text-align:center;padding:20px;font-size:12px;color:#888}.footer a{color:#888;text-decoration:none}
 .sync{font-size:11px;text-align:center;color:#008751;font-weight:bold}
+.catRow{display:flex;gap:5px;flex-wrap:wrap;margin:8px 0}.catBtn{width:auto;padding:8px 12px;border-radius:20px;background:#fff;border:1px solid #333;color:#333;font-size:12px}.catActive{background:#333!important;color:#fff!important}
+.pendingBox{background:#fff3e0;border:2px solid #ff9800;padding:12px;border-radius:10px}
 </style>
 <script>
 var FIREBASE_URL="https://pamusika-zimbabwe-e4cec-default-rtdb.firebaseio.com";
 var SUBURBS={"Harare":["Borrowdale","Avondale","Mbare","Highfield","Budiriro","Chitungwiza","Kuwadzana","Westgate","Mabvuku","CBD"],"Bulawayo":["Nkulumane","Entumbane","Pumula","Cowdray Park","CBD","Mpopoma","Luveve","Nketa","Emakhandeni","Pelandaba"],"Mutare":["Chikanga","Dangamvura","Sakubva","CBD"],"Gweru":["Mkoba","Senga","CBD","Woodlands"],"Masvingo":["Rujeko","Mucheke","CBD"],"Kwekwe":["Mbizo","Amaveni","CBD"],"Chinhoyi":["Chikonohono","CBD"],"Victoria Falls":["Chinotimba","CBD"]};
 var sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];
-var products=[{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",barcode:"1234",phone:"0783264675"},{name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",barcode:"5678",phone:"0783264675"}];
-var cart=[];var balance=0;var currentCity="All";var currentSuburb="All";
+var products=[
+{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",barcode:"1234",phone:"0783264675",category:"Food"},
+{name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",barcode:"5678",phone:"0783264675",category:"Food"}
+];
+var cart=[];var balance=0;var currentCity="All";var currentSuburb="All";var currentCat="All";
 function saveToCloud(){
   document.getElementById('syncStatus').innerText="⏳ Saving to Cloud...";
   fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved to Cloud - Everyone sees it!"}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Saved locally";});
@@ -33,7 +38,7 @@ function loadFromCloud(){
   renderAll();
   document.getElementById('syncStatus').innerText="⏳ Loading sellers from Cloud...";
   fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){
-    if(data && data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;document.getElementById('syncStatus').innerText="✅ Live - "+sellers.length+" sellers from Cloud";}
+    if(data && data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;document.getElementById('syncStatus').innerText="✅ Live - "+products.length+" products from "+sellers.length+" sellers";}
     else{saveToCloud()}
     renderAll();
   }).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved sellers";renderAll()});
@@ -43,5 +48,138 @@ function showTab(id){var tabs=document.querySelectorAll('.tab');for(var i=0;i<ta
 function setCity(c,el){currentCity=c;currentSuburb="All";var btns=document.querySelectorAll('.cityBtn');for(var i=0;i<btns.length;i++){btns[i].classList.remove('cityActive')}if(el){el.classList.add('cityActive')}renderSuburbs();renderShop()}
 function renderSuburbs(){var div=document.getElementById('suburbRow');if(currentCity==="All"){div.innerHTML="";return}var list=SUBURBS[currentCity]||[];var html="<button class='cityBtn cityActive' onclick=\"setSuburb('All',this)\">All "+currentCity+"</button>";for(var i=0;i<list.length;i++){html+="<button class='cityBtn' onclick=\"setSuburb('"+list[i]+"',this)\">"+list[i]+"</button>"}div.innerHTML=html}
 function setSuburb(s,el){currentSuburb=s;var btns=document.querySelectorAll('#suburbRow .cityBtn');for(var i=0;i<btns.length;i++){btns[i].classList.remove('cityActive')}if(el){el.classList.add('cityActive')}renderShop()}
+function setCat(c,el){currentCat=c;var btns=document.querySelectorAll('.catBtn');for(var i=0;i<btns.length;i++){btns[i].classList.remove('catActive')}if(el){el.classList.add('catActive')}renderShop()}
 function isApproved(phone){for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone&&sellers[i].status==="approved"){return true}}return false}
-function renderShop(){var q=document.getElementById('search').value.toLowerCase();var html="";for(var i=0;i<products.length;i++){var p=products[i];if(!isApproved(p.phone)){continue}if(currentCity!=="All"&&p.city!==currentCity){continue}if(currentSuburb!=="All"&&p.suburb!==currentSuburb){continue}if(p.name.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||(p.suburb||"").toLowerCase().includes(q)){var wa="https://wa.me/263"+p.phone.substring(1)+"?text=Hi, I want "+p.name+" from PaMusika";html+="<div class='card'><b>"+p.name+"</b> - $"+p.price+" - "+p.stock+" left<br>"+p.shop+" - 📍 "+p.city+" - "+(p.suburb||"")+"<br>📞 Seller: "+p.phone+"<br><a href='"+wa+"' target='_blank'><button class='waBtn'>💬 WhatsApp Seller</button></a><button onclick='addToCart("+i+")'>Add to Till</button></div>"}}document.getElementById('productList').innerHTML=html||"<p>No sellers in "+currentSuburb+", "+current
+function renderShop(){
+  var q=document.getElementById('search').value.toLowerCase();
+  var html="";var count=0;
+  for(var i=0;i<products.length;i++){
+    var p=products[i];
+    if(!isApproved(p.phone)){continue}
+    if(currentCity!=="All"&&p.city!==currentCity){continue}
+    if(currentSuburb!=="All"&&p.suburb!==currentSuburb){continue}
+    if(currentCat!=="All"&&p.category!==currentCat){continue}
+    if(q && !(p.name.toLowerCase().includes(q)||p.shop.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||(p.suburb||"").toLowerCase().includes(q)||(p.category||"").toLowerCase().includes(q))){continue}
+    count++;
+    var wa="https://wa.me/263"+p.phone.substring(1)+"?text=Hi, I want "+encodeURIComponent(p.name)+" from PaMusika";
+    html+="<div class='card'><b>"+p.name+"</b> - $"+p.price+" - "+p.stock+" left<br>🏷️ "+(p.category||"General")+" | 🏪 "+p.shop+" - 📍 "+p.city+" - "+(p.suburb||"")+"<br>📞 Seller: "+p.phone+"<br><a href='"+wa+"' target='_blank'><button class='waBtn'>💬 WhatsApp Seller</button></a><button onclick='addToCart("+i+")'>Add to Till</button></div>"
+  }
+  document.getElementById('productList').innerHTML=html||"<p>No approved products yet in "+currentSuburb+", "+currentCity+". Be the first to sell!</p>";
+  document.getElementById('productCount').innerText="Showing "+count+" approved products from all sellers";
+}
+function addToCart(i){cart.push(products[i]);renderCart();alert(products[i].name+" added")}
+function renderCart(){var total=0;var html="";for(var i=0;i<cart.length;i++){total+=cart[i].price;html+="<div class='card'>"+cart[i].name+" - $"+cart[i].price+" <button onclick='removeCart("+i+")'>Remove</button></div>"}document.getElementById('cart').innerHTML=html||"<p>Cart empty</p>";document.getElementById('total').innerText="Total: $"+total.toFixed(2)}
+function removeCart(i){cart.splice(i,1);renderCart()}
+function scanBarcode(){var code=document.getElementById('barcode').value;var found=null;for(var i=0;i<products.length;i++){if(products[i].barcode===code){found=products[i]}}if(found){cart.push(found);renderCart();alert(found.name+" added")}else{alert("Barcode not found")}}
+function checkout(){if(cart.length===0){alert("Cart empty");return}var total=0;for(var i=0;i<cart.length;i++){total+=cart[i].price}balance+=total;cart=[];document.getElementById('receipt').innerHTML="✅ RECEIPT - Paid $"+total.toFixed(2);saveToCloud();renderAll();alert("Paid $"+total.toFixed(2))}
+function botStart(){var box=document.getElementById('chatBox');box.innerHTML="PaMusika Bot: Welcome 🇿🇼 What do you want to buy?<br>Try: Potatoes in Nkulumane / Phone in Harare / Clothes in Bulawayo"}
+function sendBot(){var input=document.getElementById('botInput');var text=input.value.trim();if(!text){return}var box=document.getElementById('chatBox');box.innerHTML+="<div><b>You:</b> "+text+"</div>";var low=text.toLowerCase();var reply="";for(var i=0;i<products.length;i++){var p=products[i];if(!isApproved(p.phone)){continue}if(low.includes(p.name.toLowerCase())||low.includes((p.suburb||"").toLowerCase())||low.includes(p.city.toLowerCase())||low.includes((p.category||"").toLowerCase())||low.includes(p.shop.toLowerCase())){reply+="✅ "+p.name+" - $"+p.price+" - "+p.stock+" left<br>🏪 "+p.shop+" - 📍 "+p.city+" - "+(p.suburb||"")+"<br>📞 "+p.phone+"<br><br>"}}if(!reply){reply="Sorry, not found. Try: 'Potatoes in Nkulumane' or 'Phone in Harare'"}box.innerHTML+="<div><b>Bot:</b><br>"+reply+"</div>";input.value=""}
+function registerSeller(){var name=document.getElementById('sName').value.trim();var shop=document.getElementById('sShop').value.trim();var phone=document.getElementById('sPhone').value.trim();var city=document.getElementById('sCity').value.trim();var suburb=document.getElementById('sSuburb').value.trim();var paid=document.getElementById('sPaid').checked;if(!name||!shop||!phone){alert("Fill Name + Shop + Phone");return}if(!city){alert("Type your City");return}if(!suburb){alert("Type your Suburb");return}if(!paid){alert("Please tick YES, I sent $5 to 0783264675 first");return}for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone){alert("This phone already registered.");return}}sellers.push({name:name,shop:shop,phone:phone,city:city,suburb:suburb,status:"pending"});document.getElementById('sellerStatus').innerHTML="✅ Submitted! "+shop+" in "+suburb+", "+city+" - PENDING. Owner will approve after checking EcoCash $5.";saveToCloud();renderAll();alert("Submitted! Wait for Owner Approval after EcoCash check.")}
+function renderSellers(){
+  var pend="";var appr="";
+  for(var i=0;i<sellers.length;i++){
+    var s=sellers[i];
+    if(s.status==="pending"){
+      pend+="<div class='card pendingBox'><b>⏳ PENDING - "+s.shop+"</b> - "+s.name+"<br>📞 "+s.phone+" - 📍 "+s.city+" - "+(s.suburb||"")+"<br>💰 Claims: Sent $5 EcoCash - CHECK YOUR ECOCASH!<br><button style='background:#00e676;color:#000' onclick='approveSeller("+i+")'>✅ APPROVE - I Got $5</button><button style='background:#ff1744' onclick='rejectSeller("+i+")'>❌ Reject - No Payment</button></div>"
+    } else {
+      appr+="<div class='card'>✅ "+s.shop+" - "+s.name+" - 📞 "+s.phone+" - 📍 "+s.city+" - "+(s.suburb||"")+"</div>"
+    }
+  }
+  document.getElementById('pendingList').innerHTML=pend||"<p>No pending sellers - all clear ✅</p>";
+  document.getElementById('approvedList').innerHTML=appr||"<p>No approved sellers yet</p>";
+  var my="";for(var j=0;j<sellers.length;j++){my+="<div class='card'>"+sellers[j].shop+" - "+sellers[j].phone+" - 📍 "+sellers[j].city+" - "+(sellers[j].suburb||"")+" - "+sellers[j].status.toUpperCase()+"</div>"}document.getElementById('mySellers').innerHTML=my;
+}
+function approveSeller(i){sellers[i].status="approved";saveToCloud();renderAll();alert(sellers[i].shop+" APPROVED! All their products now show to EVERYONE.");}
+function rejectSeller(i){if(confirm("Reject "+sellers[i].shop+"? Their products will be hidden.")){sellers.splice(i,1);saveToCloud();renderAll();}}
+function addProduct(){var name=document.getElementById('pName').value.trim();var price=parseFloat(document.getElementById('pPrice').value);var stock=parseInt(document.getElementById('pStock').value);var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var category=document.getElementById('pCategory').value.trim()||"General";var barcode=document.getElementById('pBarcode').value||Date.now().toString().slice(-4);var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!name||!price){alert("Fill Name + Price");return}if(!city){alert("Type City");return}if(!suburb){alert("Type Suburb");return}products.push({name:name,price:price,stock:stock||0,shop:shop,city:city,suburb:suburb,category:category,barcode:barcode,phone:phone});saveToCloud();renderAll();if(isApproved(phone)){alert(name+" Added! Everyone sees it now.")}else{alert(name+" Saved! It will show AFTER Owner approves your $5 payment.")}}
+function bulkAdd(){
+  var text=document.getElementById('bulkBox').value.trim();
+  var shop=document.getElementById('pShop').value.trim()||"My Shop";
+  var city=document.getElementById('pCity').value.trim();
+  var suburb=document.getElementById('pSuburb').value.trim();
+  var category=document.getElementById('pCategory').value.trim()||"General";
+  var phone=document.getElementById('pPhone').value.trim()||"0783264675";
+  if(!text){alert("Paste your products first");return}
+  if(!city||!suburb){alert("Type City + Suburb above first");return}
+  var lines=text.split("\n");var added=0;
+  for(var i=0;i<lines.length;i++){
+    var parts=lines[i].split(",");
+    if(parts.length<2) continue;
+    var n=parts[0].trim();var pr=parseFloat(parts[1]);var st=parseInt(parts[2])||0;
+    if(!n||!pr) continue;
+    products.push({name:n,price:pr,stock:st,shop:shop,city:city,suburb:suburb,category:category,barcode:Date.now().toString().slice(-4)+i,phone:phone});
+    added++;
+  }
+  saveToCloud();renderAll();
+  if(isApproved(phone)){alert(added+" products added! Everyone sees them now.")}
+  else{alert(added+" products saved! They will show AFTER Owner approves your $5 payment.")}
+  document.getElementById('bulkBox').value="";
+}
+function renderAdmin(){var html="";for(var i=0;i<products.length;i++){var p=products[i];var tag=isApproved(p.phone)?"✅ LIVE":"⏳ HIDDEN - Waiting Approval";html+="<div class='card'>"+p.name+" - $"+p.price+" - Stock "+p.stock+" - "+(p.category||"")+" - "+p.shop+" - 📍 "+p.city+" - "+(p.suburb||"")+" - 📞 "+p.phone+" - <b>"+tag+"</b> <button onclick='deleteProduct("+i+")'>Delete</button></div>"}document.getElementById('adminList').innerHTML=html}
+function deleteProduct(i){products.splice(i,1);saveToCloud();renderAll()}
+function resetAll(){if(confirm("Reset PaMusika Cloud?")){sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];products=[{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",barcode:"1234",phone:"0783264675",category:"Food"}];balance=0;saveToCloud();renderAll()}}
+function ownerLogin(){var pin=prompt("Enter Owner PIN:");if(pin==="0783"){showTab('admin');alert("Welcome Owner! Check PENDING sellers below.");}else{alert("Wrong PIN")}}
+function renderAll(){renderShop();renderCart();renderSellers();renderAdmin();document.getElementById('balance').innerText="Balance: $"+balance.toFixed(2);renderSuburbs()}
+</script>
+</head>
+<body onload="loadFromCloud();botStart()">
+<header><h1>🛒 PaMusika</h1><p>Zimbabwe Marketplace - Sell ANYTHING 🇿🇼</p><div class="top"><span class="active">● ACTIVE</span><span id="balance">Balance: $0.00</span></div></header>
+<div class="waBanner"><a href="https://wa.me/263783264675?text=Hi PaMusika">💬 NO INTERNET DATA? Tap Here - Order on WhatsApp Bundle</a></div>
+<p id="syncStatus" class="sync">Connecting to Cloud...</p>
+<nav>
+<button onclick="showTab('shop')" class="navBtn activeBtn">Shop</button>
+<button onclick="showTab('till')" class="navBtn">Till</button>
+<button onclick="showTab('bot')" class="navBtn">Bot</button>
+<button onclick="showTab('seller')" class="navBtn">Become Seller</button>
+</nav>
+<div id="shop" class="tab">
+<input id="search" placeholder="Search ANYTHING - Potatoes, Phone, Clothes, Shop name..." oninput="renderShop()">
+<div class="cityRow">
+<button class="cityBtn cityActive" onclick="setCity('All',this)">All ZW</button>
+<button class="cityBtn" onclick="setCity('Harare',this)">Harare</button>
+<button class="cityBtn" onclick="setCity('Bulawayo',this)">Bulawayo</button>
+<button class="cityBtn" onclick="setCity('Mutare',this)">Mutare</button>
+<button class="cityBtn" onclick="setCity('Gweru',this)">Gweru</button>
+<button class="cityBtn" onclick="setCity('Masvingo',this)">Masvingo</button>
+<button class="cityBtn" onclick="setCity('Kwekwe',this)">Kwekwe</button>
+</div>
+<div id="suburbRow" class="cityRow"></div>
+<div class="catRow">
+<button class="catBtn catActive" onclick="setCat('All',this)">All Products</button>
+<button class="catBtn" onclick="setCat('Food',this)">Food</button>
+<button class="catBtn" onclick="setCat('Clothes',this)">Clothes</button>
+<button class="catBtn" onclick="setCat('Phones',this)">Phones</button>
+<button class="catBtn" onclick="setCat('Electronics',this)">Electronics</button>
+<button class="catBtn" onclick="setCat('Hardware',this)">Hardware</button>
+<button class="catBtn" onclick="setCat('Beauty',this)">Beauty</button>
+<button class="catBtn" onclick="setCat('General',this)">General</button>
+</div>
+<p id="productCount" style="font-size:12px;">Showing approved products</p>
+<div id="productList"></div></div>
+<div id="till" class="tab hidden"><h2>🧾 Till</h2><input id="barcode" placeholder="Barcode e.g. 1234"><button onclick="scanBarcode()">Add by Barcode</button><div id="cart"></div><h3 id="total">Total: $0.00</h3><button onclick="checkout()">💵 PAY</button><p id="receipt"></p></div>
+<div id="bot" class="tab hidden"><h2>🤖 PaMusika Bot</h2><div id="chatBox" style="background:#fff;height:220px;overflow:auto;padding:10px;border-radius:10px"></div><input id="botInput" placeholder="Type: Phone in Harare / Clothes in Bulawayo"><button onclick="sendBot()">Send to Bot</button><button style="background:#333" onclick="botStart()">↺ Restart Bot</button></div>
+<div id="seller" class="tab hidden">
+<h2>🚀 Become a Seller - $5/month - Sell ANYTHING</h2>
+<div class="ecocashBox"><b>STEP 1: Send $5 via EcoCash to 0783264675</b><br>Dial *151# &gt; Send Money<br><b>STEP 2: Screenshot your EcoCash SMS</b><br>Send screenshot to Owner on WhatsApp</div>
+<input id="sName" placeholder="Your Full Name"><input id="sShop" placeholder="Shop / Company Name - e.g. Tino Phones, Mama's Boutique"><input id="sPhone" placeholder="Your Phone e.g. 0771234567">
+<label>City - Type Yours</label><input id="sCity" placeholder="Type your city e.g. Bulawayo">
+<label>Suburb - Type Yours</label><input id="sSuburb" placeholder="Type your suburb e.g. Nkulumane">
+<label><input type="checkbox" id="sPaid" style="width:auto;"> ✅ YES, I sent $5 to 0783264675</label><br><br>
+<a href="https://wa.me/263783264675?text=Hi PaMusika, I sent $5 EcoCash to become a Seller. Here is my screenshot:" target="_blank"><button class="waBtn" type="button">📸 Send Screenshot Proof on WhatsApp</button></a>
+<button onclick="registerSeller()">Submit - Wait for Owner Approval</button><p id="sellerStatus"></p><h3>My Status</h3><div id="mySellers"></div>
+</div>
+<div id="admin" class="tab hidden">
+<h2>👑 Owner Admin - CHECK ECOCASH & APPROVE</h2>
+<h3>⏳ PENDING - Check EcoCash $5 Then Approve</h3><div id="pendingList"></div>
+<h3>✅ Approved Sellers</h3><div id="approvedList"></div><hr>
+<h2>➕ Add Product - Any Company, Any Product</h2><input id="pName" placeholder="Product Name - e.g. iPhone 11, Dress, Cement, Rice"><input id="pPrice" type="number" placeholder="Price"><input id="pStock" type="number" placeholder="Stock - e.g. 90"><input id="pShop" placeholder="Shop / Company Name">
+<label>Category - Type Yours</label><input id="pCategory" placeholder="Type category e.g. Phones, Clothes, Food, Hardware">
+<label>City - Type Yours</label><input id="pCity" placeholder="Type city e.g. Bulawayo">
+<label>Suburb - Type Yours</label><input id="pSuburb" placeholder="Type suburb e.g. Nkulumane">
+<input id="pBarcode" placeholder="Barcode (optional)"><input id="pPhone" placeholder="Seller Phone"><button onclick="addProduct()">Add Product</button>
+<hr><h2>📦 BULK ADD - For 90 Products At Once</h2><p style="font-size:12px;">Type City + Suburb + Shop above first, then paste like this:<br>Potatoes,1,32<br>Tomatoes,1.5,50<br>iPhone 11,150,5<br>Each line = Name, Price, Stock</p><textarea id="bulkBox" rows="6" placeholder="Potatoes,1,32&#10;Tomatoes,1.5,50&#10;iPhone 11,150,5"></textarea><button style="background:#ff9800" onclick="bulkAdd()">📦 Add ALL Products At Once</button>
+<hr><h3>All Products - ✅ LIVE / ⏳ HIDDEN</h3><div id="adminList"></div><br><button style="background:#333" onclick="resetAll()">⚠️ RESET CLOUD</button><br><br><button onclick="showTab('shop')">⬅ Back to Shop</button>
+</div>
+<div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login</a> • PaMusika Zimbabwe • Open Marketplace • Owner Approves $5</div>
+</body>
+  </html>
