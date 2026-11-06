@@ -6,36 +6,43 @@
 <title>PaMusika - Price List</title>
 <style>
 body{font-family:Arial;margin:0;background:#fff}
-header{background:#008751;color:#fff;text-align:center;padding:14px}
-header h1{margin:0}
-.waTop{background:#25D366;padding:12px;text-align:center}.waTop a{color:#fff;font-weight:bold;text-decoration:none}
-.top{padding:10px;text-align:center;font-weight:bold}
-nav{display:flex;gap:5px;padding:10px;background:#eee} .navBtn{flex:1;padding:10px;border:none;background:#fff;font-weight:bold;border-radius:6px}.activeBtn{background:#008751!important;color:#fff}
+header{background:#008751;color:#fff;text-align:center;padding:14px}header h1{margin:0}
+.waTop{background:#008751;padding:12px;text-align:center}.waTop a{color:#fff;font-weight:bold;text-decoration:none}
+nav{display:flex;gap:5px;padding:10px;background:#eee} .navBtn{flex:1;padding:10px;border:none;background:#fff;font-weight:bold;border-radius:6px;color:#008751}.activeBtn{background:#008751!important;color:#fff!important}
 .tab{padding:10px}.hidden{display:none}
-input,textarea{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
+input,textarea,select{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
 button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:none;border-radius:6px;font-weight:bold}
-.waBtn{background:#25D366!important}
-table{width:100%;border-collapse:collapse;font-size:13px} th{background:#008751;color:#fff;padding:8px;text-align:left} td{border-bottom:1px solid #ddd;padding:8px} tr:nth-child(even){background:#f9f9f9}
-.card{background:#f2f2f2;padding:10px;margin:8px 0;border-radius:8px}
-.ecocashBox{background:#fff3e0;border:2px dashed #ff9800;padding:12px;border-radius:8px;text-align:center}
+table{width:100%;border-collapse:collapse;font-size:13px} th{background:#008751;color:#fff;padding:8px;text-align:left} td{border-bottom:1px solid #ddd;padding:8px} tr:nth-child(even){background:#f0f9f2}
+.card{background:#f0f9f2;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #008751}
+.ecocashBox{background:#f0f9f2;border:2px dashed #008751;padding:12px;border-radius:8px;text-align:center}
 .sync{text-align:center;font-size:12px;color:#008751;font-weight:bold}
 .footer{text-align:center;padding:20px;font-size:12px;color:#888}
+.smallBtn{width:auto;padding:6px 10px;margin:2px;font-size:12px}
+.qtyBtn{width:32px;padding:6px;margin:0 2px}
+.receiptBox{background:#fff;border:2px dashed #008751;padding:14px;border-radius:8px;font-family:monospace}
+video{width:100%;border-radius:8px;background:#000}
+.dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dashCard{background:#008751;color:#fff;padding:14px;border-radius:10px;text-align:center}
+.dashCard b{font-size:22px;display:block}
+.dashCard span{font-size:12px}
+.lowCard{background:#fff3e0;border:2px solid #ff9800;padding:10px;border-radius:8px;margin:6px 0}
+.statRow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
 </style>
 <script>
 var FIREBASE_URL="https://pamusika-zimbabwe-e4cec-default-rtdb.firebaseio.com";
 var sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];
 var products=[
-{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675"},
-{name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675"}
+{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"1234"},
+{name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"5678"}
 ];
-var cart=[];var balance=0;
-function saveToCloud(){document.getElementById('syncStatus').innerText="⏳ Saving...";fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved - Everyone sees it!"}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";});}
-function loadFromCloud(){renderAll();document.getElementById('syncStatus').innerText="⏳ Loading...";fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;document.getElementById('syncStatus').innerText="✅ Live - "+products.length+" products";}else{saveToCloud()}renderAll();}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";renderAll();});setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];renderAll()}}).catch(function(){})},10000);}
+var cart=[];var balance=0;var lastReceipt="";var lastTotal=0;var scannerStream=null;var sales=[];var totalSold=0;
+function saveToCloud(){document.getElementById('syncStatus').innerText="⏳ Saving...";fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance,sales:sales,totalSold:totalSold})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved - Everyone sees it!"}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";});}
+function loadFromCloud(){renderAll();document.getElementById('syncStatus').innerText="⏳ Loading...";fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;sales=data.sales||[];totalSold=data.totalSold||0;document.getElementById('syncStatus').innerText="✅ Live - "+products.length+" products";}else{saveToCloud()}renderAll();}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";renderAll();});setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];sales=data.sales||[];renderAll()}}).catch(function(){})},10000);}
 function showTab(id){var t=document.querySelectorAll('.tab');for(var i=0;i<t.length;i++){t[i].classList.add('hidden')}document.getElementById(id).classList.remove('hidden');var b=document.querySelectorAll('.navBtn');for(var j=0;j<b.length;j++){b[j].classList.remove('activeBtn')}if(event&&event.target){event.target.classList.add('activeBtn')}}
 function isApproved(phone){for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone&&sellers[i].status==="approved"){return true}}return false}
 function renderShop(){
   var q=document.getElementById('search').value.toLowerCase();
-  var html="<table><tr><th>Product</th><th>Price ($)</th><th>Qty Left</th><th>Shop</th><th>City</th><th>Suburb</th><th>Order</th></tr>";
+  var html="<table><tr><th>Product</th><th>Price ($)</th><th>Shop</th><th>City</th><th>Suburb</th><th>Order</th></tr>";
   var count=0;
   for(var i=0;i<products.length;i++){
     var p=products[i];
@@ -43,29 +50,130 @@ function renderShop(){
     if(q && !(p.name.toLowerCase().includes(q)||p.shop.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||(p.suburb||"").toLowerCase().includes(q))){continue}
     count++;
     var wa="https://wa.me/263"+p.phone.substring(1)+"?text="+encodeURIComponent("Hi, I want "+p.name+" - $"+p.price+" from PaMusika");
-    html+="<tr><td><b>"+p.name+"</b></td><td>$"+p.price+"</td><td>"+p.stock+"</td><td>"+p.shop+"</td><td>"+p.city+"</td><td>"+(p.suburb||"")+"</td><td><a href='"+wa+"' target='_blank'><button class='waBtn' style='padding:6px;margin:0'>WhatsApp</button></a></td></tr>";
+    html+="<tr><td><b>"+p.name+"</b></td><td>$"+p.price+"</td><td>"+p.shop+"</td><td>"+p.city+"</td><td>"+(p.suburb||"")+"</td><td><a href='"+wa+"' target='_blank'><button class='smallBtn'>WhatsApp</button></a><button class='smallBtn' onclick='addToCartByIndex("+i+")'>+ Till</button></td></tr>";
   }
   html+="</table>";
   if(count===0){html="<p>No approved products yet. Be the first to sell!</p>"}
   document.getElementById('productList').innerHTML=html;
   document.getElementById('productCount').innerText="Showing "+count+" products - All Shops, All Products";
 }
-function addToCart(i){cart.push(products[i]);renderCart()}
-function renderCart(){var total=0;var html="";for(var i=0;i<cart.length;i++){total+=cart[i].price;html+="<div class='card'>"+cart[i].name+" - $"+cart[i].price+"</div>"}document.getElementById('cart').innerHTML=html||"<p>Cart empty</p>";document.getElementById('total').innerText="Total: $"+total.toFixed(2)}
-function checkout(){if(cart.length===0){alert("Cart empty");return}var total=0;for(var i=0;i<cart.length;i++){total+=cart[i].price}balance+=total;cart=[];document.getElementById('receipt').innerHTML="✅ RECEIPT - Paid $"+total.toFixed(2);saveToCloud();renderAll();alert("Paid $"+total.toFixed(2))}
-function botStart(){document.getElementById('chatBox').innerHTML="PaMusika Bot on WhatsApp: Type what you want<br>e.g. Potatoes in Nkulumane<br>It checks the TABLE above and shows you who has it."}
-function sendBot(){var input=document.getElementById('botInput');var text=input.value.trim();if(!text){return}var box=document.getElementById('chatBox');box.innerHTML+="<div><b>You:</b> "+text+"</div>";var low=text.toLowerCase();var reply="";for(var i=0;i<products.length;i++){var p=products[i];if(!isApproved(p.phone)){continue}if(low.includes(p.name.toLowerCase())||low.includes((p.suburb||"").toLowerCase())||low.includes(p.city.toLowerCase())||low.includes(p.shop.toLowerCase())){reply+="✅ "+p.name+" - $"+p.price+" - "+p.stock+" left | "+p.shop+" - "+p.city+" - "+(p.suburb||"")+" - 📞 "+p.phone+"<br>"}}if(!reply){reply="Sorry not found. Try: Potatoes in Nkulumane"}box.innerHTML+="<div><b>Bot:</b><br>"+reply+"</div>";input.value="";var waLink=document.getElementById('waBotLink');waLink.href="https://wa.me/263783264675?text="+encodeURIComponent("Hi PaMusika, I want: "+text);waLink.style.display="block";}
-function registerSeller(){var name=document.getElementById('sName').value.trim();var shop=document.getElementById('sShop').value.trim();var phone=document.getElementById('sPhone').value.trim();var city=document.getElementById('sCity').value.trim();var suburb=document.getElementById('sSuburb').value.trim();var paid=document.getElementById('sPaid').checked;if(!name||!shop||!phone){alert("Fill Name + Shop + Phone");return}if(!city){alert("Type your City");return}if(!suburb){alert("Type your Suburb");return}if(!paid){alert("Tick YES, I sent $5 to 0783264675 first");return}for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone){document.getElementById('sellerStatus').innerHTML="You already registered as "+sellers[i].shop+" - Status: "+sellers[i].status.toUpperCase()+". If PENDING, wait for Owner to approve.";alert("This phone already registered as "+sellers[i].shop+" - Status: "+sellers[i].status);return}}sellers.push({name:name,shop:shop,phone:phone,city:city,suburb:suburb,status:"pending"});document.getElementById('sellerStatus').innerHTML="✅ Submitted! "+shop+" - PENDING. Owner will approve after checking EcoCash $5.";saveToCloud();renderAll();alert("Submitted! Wait for Approval.")}
-function renderSellers(){var pend="";var appr="";for(var i=0;i<sellers.length;i++){var s=sellers[i];if(s.status==="pending"){pend+="<div class='card'><b>⏳ PENDING - "+s.shop+"</b> - "+s.name+"<br>📞 "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"<br>💰 Claims $5 sent - CHECK ECOCASH!<br><button style='background:#00e676;color:#000' onclick='approveSeller("+i+")'>✅ APPROVE - I Got $5</button><button style='background:#ff1744' onclick='rejectSeller("+i+")'>❌ Reject</button></div>"}else{appr+="<div class='card'>✅ "+s.shop+" - "+s.name+" - "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"</div>"}}document.getElementById('pendingList').innerHTML=pend||"<p>No pending sellers</p>";document.getElementById('approvedList').innerHTML=appr;var my="";for(var j=0;j<sellers.length;j++){my+="<div class='card'>"+sellers[j].shop+" - "+sellers[j].phone+" - "+sellers[j].city+" - "+(sellers[j].suburb||"")+" - "+sellers[j].status.toUpperCase()+"</div>"}document.getElementById('mySellers').innerHTML=my;}
-function approveSeller(i){sellers[i].status="approved";saveToCloud();renderAll();alert(sellers[i].shop+" APPROVED! All their products now show in TABLE.");}
+function addToCartByIndex(idx){
+  var p=products[idx];
+  if(p.stock<=0){alert(p.name+" out of stock! Check Dashboard.");return}
+  var found=null;
+  for(var i=0;i<cart.length;i++){if(cart[i].idx===idx){found=cart[i]}}
+  if(found){found.qty++} else {cart.push({idx:idx,name:p.name,price:p.price,qty:1})}
+  renderCart();
+}
+function renderCart(){
+  var total=0;var html="";
+  for(var i=0;i<cart.length;i++){var c=cart[i];var line=c.price*c.qty;total+=line;html+="<div class='card'>"+c.name+" - $"+c.price+" x "+c.qty+" = $"+line.toFixed(2)+" <button class='qtyBtn' onclick='changeQty("+i+",-1)'>-</button><button class='qtyBtn' onclick='changeQty("+i+",1)'>+</button><button class='smallBtn' onclick='removeCart("+i+")'>Remove</button></div>"}
+  document.getElementById('cart').innerHTML=html||"<p>Cart empty - scan barcode or tap + Till</p>";
+  document.getElementById('total').innerText="Total: $"+total.toFixed(2);
+  updateChange();
+}
+function changeQty(i,d){cart[i].qty+=d;if(cart[i].qty<=0){cart.splice(i,1)}renderCart()}
+function removeCart(i){cart.splice(i,1);renderCart()}
+function clearCart(){cart=[];renderCart();document.getElementById('receipt').innerHTML=""}
+function scanBarcode(){
+  var code=document.getElementById('barcode').value.trim();
+  if(!code){alert("Type barcode or scan with camera");return}
+  var foundIdx=-1;
+  for(var i=0;i<products.length;i++){if(String(products[i].barcode)===String(code)){foundIdx=i;break}}
+  if(foundIdx>=0){addToCartByIndex(foundIdx);document.getElementById('barcode').value="";alert(products[foundIdx].name+" added to Till - Barcode knows it!")}else{alert("Barcode "+code+" NOT in system. This product was never added with this barcode. Add it in Admin first with barcode "+code)}
+}
+async function startScanner(){
+  var box=document.getElementById('scannerBox');
+  box.classList.remove('hidden');
+  var video=document.getElementById('scanVideo');
+  try{
+    scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
+    video.srcObject=scannerStream;video.play();
+    if('BarcodeDetector' in window){
+      var detector=new BarcodeDetector({formats:['ean_13','ean_8','code_128','upc_a','qr_code']});
+      var loop=setInterval(async function(){
+        if(!scannerStream){clearInterval(loop);return}
+        try{
+          var codes=await detector.detect(video);
+          if(codes && codes.length>0){
+            var val=codes[0].rawValue;
+            document.getElementById('barcode').value=val;
+            stopScanner();
+            scanBarcode();
+          }
+        }catch(e){}
+      },500);
+    } else {
+      document.getElementById('scanHint').innerText="Camera open - read barcode number and type it below. Your phone does not support auto-detect.";
+    }
+  }catch(e){alert("Camera blocked - allow camera permission, or type barcode manually.");box.classList.add('hidden');}
+}
+function stopScanner(){if(scannerStream){scannerStream.getTracks().forEach(function(t){t.stop()});scannerStream=null}document.getElementById('scannerBox').classList.add('hidden')}
+function updateChange(){
+  var total=0;for(var i=0;i<cart.length;i++){total+=cart[i].price*cart[i].qty}
+  var paid=parseFloat(document.getElementById('amountPaid').value)||0;
+  var change=paid-total;
+  document.getElementById('changeText').innerText=paid>0?"Change: $"+change.toFixed(2):"Enter amount customer paid to see change";
+}
+function checkout(){
+  if(cart.length===0){alert("Cart empty");return}
+  var total=0;for(var i=0;i<cart.length;i++){total+=cart[i].price*cart[i].qty}
+  var method=document.getElementById('payMethod').value;
+  var paid=parseFloat(document.getElementById('amountPaid').value)||total;
+  var change=paid-total;
+  var date=new Date().toLocaleString();
+  var shopName=cart.length>0?products[cart[0].idx].shop:"PaMusika";
+  var receipt="===== PaMusika RECEIPT =====\n"+shopName+"\n"+date+"\n--------------------------\n";
+  for(var i=0;i<cart.length;i++){
+    var c=cart[i];
+    receipt+=c.name+" x "+c.qty+" @ $"+c.price+" = $"+(c.price*c.qty).toFixed(2)+"\n";
+    var p=products[c.idx];
+    p.stock=Math.max(0,p.stock-c.qty);
+  }
+  receipt+="--------------------------\nTOTAL: $"+total.toFixed(2)+"\nPAYMENT: "+method+"\nPAID: $"+paid.toFixed(2)+"\nCHANGE: $"+change.toFixed(2)+"\nEcoCash: 0783264675\nThank you! Come again 🇿🇼";
+  lastReceipt=receipt;lastTotal=total;
+  balance+=total;totalSold+=total;
+  sales.unshift({date:date,total:total,method:method,items:cart.map(function(c){return c.name+" x"+c.qty}).join(", ")});
+  if(sales.length>50){sales=sales.slice(0,50)}
+  cart=[];
+  document.getElementById('receipt').innerHTML="<div class='receiptBox'><pre style='white-space:pre-wrap;margin:0'>"+receipt+"</pre><br><button onclick='printReceipt()'>🖨️ Print Receipt</button><button onclick='sendReceiptWhatsApp()'>💬 Send Receipt on WhatsApp</button><button onclick='clearReceipt()'>Clear Receipt</button></div>";
+  document.getElementById('amountPaid').value="";
+  saveToCloud();renderAll();renderCart();
+  alert("Sale done! Stock deducted. Change: $"+change.toFixed(2));
+}
+function printReceipt(){var w=window.open('','','width=400,height=600');w.document.write("<pre>"+lastReceipt+"</pre>");w.document.close();w.print();}
+function sendReceiptWhatsApp(){var num=document.getElementById('receiptPhone').value.trim()||"0783264675";var link="https://wa.me/263"+num.substring(1)+"?text="+encodeURIComponent(lastReceipt);window.open(link,'_blank');}
+function clearReceipt(){document.getElementById('receipt').innerHTML="";lastReceipt=""}
+function botStart(){document.getElementById('chatBox').innerHTML="PaMusika Bot: Type what you want<br>e.g. Potatoes in Nkulumane"}
+function sendBot(){var input=document.getElementById('botInput');var text=input.value.trim();if(!text){return}var box=document.getElementById('chatBox');box.innerHTML+="<div><b>You:</b> "+text+"</div>";var low=text.toLowerCase();var reply="";for(var i=0;i<products.length;i++){var p=products[i];if(!isApproved(p.phone)){continue}if(low.includes(p.name.toLowerCase())||low.includes((p.suburb||"").toLowerCase())||low.includes(p.city.toLowerCase())||low.includes(p.shop.toLowerCase())){reply+="✅ "+p.name+" - $"+p.price+" | "+p.shop+" - "+p.city+" - "+(p.suburb||"")+" - 📞 "+p.phone+"<br>"}}if(!reply){reply="Sorry not found. Try: Potatoes in Nkulumane"}box.innerHTML+="<div><b>Bot:</b><br>"+reply+"</div>";input.value="";var waLink=document.getElementById('waBotLink');waLink.href="https://wa.me/263783264675?text="+encodeURIComponent("Hi PaMusika, I want: "+text);waLink.style.display="block";}
+function registerSeller(){var name=document.getElementById('sName').value.trim();var shop=document.getElementById('sShop').value.trim();var phone=document.getElementById('sPhone').value.trim();var city=document.getElementById('sCity').value.trim();var suburb=document.getElementById('sSuburb').value.trim();var paid=document.getElementById('sPaid').checked;if(!name||!shop||!phone){alert("Fill Name + Shop + Phone");return}if(!city){alert("Type your City");return}if(!suburb){alert("Type your Suburb");return}if(!paid){alert("Tick YES, I sent $5 to 0783264675 first");return}for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone){document.getElementById('sellerStatus').innerHTML="You already registered as "+sellers[i].shop+" - Status: "+sellers[i].status.toUpperCase();alert("Already registered as "+sellers[i].shop+" - "+sellers[i].status);return}}sellers.push({name:name,shop:shop,phone:phone,city:city,suburb:suburb,status:"pending"});document.getElementById('sellerStatus').innerHTML="✅ Submitted! "+shop+" - PENDING. Owner will approve after checking EcoCash $5.";saveToCloud();renderAll();alert("Submitted! Wait for Approval.")}
+function renderSellers(){var pend="";var appr="";for(var i=0;i<sellers.length;i++){var s=sellers[i];if(s.status==="pending"){pend+="<div class='card'><b>⏳ PENDING - "+s.shop+"</b> - "+s.name+"<br>📞 "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"<br>💰 Claims $5 sent - CHECK ECOCASH!<br><button onclick='approveSeller("+i+")'>✅ APPROVE - I Got $5</button><button onclick='rejectSeller("+i+")'>✅ REJECT - No Payment</button></div>"}else{appr+="<div class='card'>✅ "+s.shop+" - "+s.name+" - "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"</div>"}}document.getElementById('pendingList').innerHTML=pend||"<p>No pending sellers</p>";document.getElementById('approvedList').innerHTML=appr;var my="";for(var j=0;j<sellers.length;j++){my+="<div class='card'>"+sellers[j].shop+" - "+sellers[j].phone+" - "+sellers[j].city+" - "+(sellers[j].suburb||"")+" - "+sellers[j].status.toUpperCase()+"</div>"}document.getElementById('mySellers').innerHTML=my;}
+function approveSeller(i){sellers[i].status="approved";saveToCloud();renderAll();alert(sellers[i].shop+" APPROVED!");}
 function rejectSeller(i){sellers.splice(i,1);saveToCloud();renderAll();}
-function addProduct(){var name=document.getElementById('pName').value.trim();var price=parseFloat(document.getElementById('pPrice').value);var stock=parseInt(document.getElementById('pStock').value);var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!name||!price){alert("Fill Name + Price");return}if(!city){alert("Type City");return}if(!suburb){alert("Type Suburb");return}products.push({name:name,price:price,stock:stock||0,shop:shop,city:city,suburb:suburb,phone:phone});saveToCloud();renderAll();if(isApproved(phone)){alert(name+" Added to TABLE!")}else{alert(name+" Saved! Will show in TABLE after Owner approves $5.")}}
-function bulkAdd(){var text=document.getElementById('bulkBox').value.trim();var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!text){alert("Paste products first");return}if(!city||!suburb){alert("Type City + Suburb first");return}var lines=text.split("\n");var added=0;for(var i=0;i<lines.length;i++){var parts=lines[i].split(",");if(parts.length<2)continue;var n=parts[0].trim();var pr=parseFloat(parts[1]);var st=parseInt(parts[2])||0;if(!n||!pr)continue;products.push({name:n,price:pr,stock:st,shop:shop,city:city,suburb:suburb,phone:phone});added++;}saveToCloud();renderAll();alert(added+" products added to TABLE!");document.getElementById('bulkBox').value="";}
-function renderAdmin(){var html="<table><tr><th>Product</th><th>Price</th><th>Qty</th><th>Shop</th><th>Status</th><th></th></tr>";for(var i=0;i<products.length;i++){var p=products[i];var tag=isApproved(p.phone)?"✅ LIVE":"⏳ HIDDEN";html+="<tr><td>"+p.name+"</td><td>$"+p.price+"</td><td>"+p.stock+"</td><td>"+p.shop+"</td><td>"+tag+"</td><td><button onclick='deleteProduct("+i+")' style='padding:6px;margin:0'>Delete</button></td></tr>"}html+="</table>";document.getElementById('adminList').innerHTML=html;}
+function addProduct(){var name=document.getElementById('pName').value.trim();var price=parseFloat(document.getElementById('pPrice').value);var stock=parseInt(document.getElementById('pStock').value);var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";var barcode=document.getElementById('pBarcode').value.trim()||Date.now().toString().slice(-4);if(!name||!price){alert("Fill Name + Price");return}if(!city){alert("Type City");return}if(!suburb){alert("Type Suburb");return}products.push({name:name,price:price,stock:stock||0,shop:shop,city:city,suburb:suburb,phone:phone,barcode:barcode});saveToCloud();renderAll();if(isApproved(phone)){alert(name+" Added! Barcode "+barcode+" saved - scanner now knows it.")}else{alert(name+" Saved! Will show after Owner approves $5.")}}
+function bulkAdd(){var text=document.getElementById('bulkBox').value.trim();var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!text){alert("Paste products first");return}if(!city||!suburb){alert("Type City + Suburb first");return}var lines=text.split("\n");var added=0;for(var i=0;i<lines.length;i++){var parts=lines[i].split(",");if(parts.length<2)continue;var n=parts[0].trim();var pr=parseFloat(parts[1]);var st=parseInt(parts[2])||0;var bc=parts[3]?parts[3].trim():Date.now().toString().slice(-4)+i;if(!n||!pr)continue;products.push({name:n,price:pr,stock:st,shop:shop,city:city,suburb:suburb,phone:phone,barcode:bc});added++;}saveToCloud();renderAll();alert(added+" products added! Scanner now knows all their barcodes.");document.getElementById('bulkBox').value="";}
+function renderDashboard(){
+  var approvedSellers=0;var pendingSellers=0;
+  for(var i=0;i<sellers.length;i++){if(sellers[i].status==="approved"){approvedSellers++}else{pendingSellers++}}
+  var totalStock=0;var lowList="";
+  for(var j=0;j<products.length;j++){totalStock+=products[j].stock;if(products[j].stock<=5){lowList+="<div class='lowCard'>⚠️ LOW STOCK: <b>"+products[j].name+"</b> - Only "+products[j].stock+" left - "+products[j].shop+"</div>"}}
+  if(!lowList){lowList="<p>✅ No low stock - all good!</p>"}
+  var salesHtml="";
+  for(var k=0;k<Math.min(sales.length,10);k++){salesHtml+="<div class='statRow'><span>"+sales[k].date+" - "+sales[k].items+"</span><b>$"+sales[k].total.toFixed(2)+"</b></div>"}
+  if(!salesHtml){salesHtml="<p>No sales yet</p>"}
+  document.getElementById('dashStats').innerHTML="<div class='dashGrid'><div class='dashCard'><b>$"+balance.toFixed(2)+"</b><span>Total Balance</span></div><div class='dashCard'><b>$"+totalSold.toFixed(2)+"</b><span>Total Sold</span></div><div class='dashCard'><b>"+products.length+"</b><span>Products</span></div><div class='dashCard'><b>"+approvedSellers+"</b><span>Approved Sellers</span></div></div><p style='font-size:13px'>⏳ Pending: "+pendingSellers+" | 📦 Total Stock in Store: "+totalStock+" items</p>";
+  document.getElementById('dashLow').innerHTML=lowList;
+  document.getElementById('dashSales').innerHTML=salesHtml;
+  var stockHtml="<table><tr><th>Product</th><th>Price</th><th>QTY LEFT (SECRET)</th><th>Barcode</th><th>Shop</th><th></th></tr>";
+  for(var m=0;m<products.length;m++){var p=products[m];var tag=isApproved(p.phone)?"✅ LIVE":"⏳ HIDDEN";stockHtml+="<tr><td>"+p.name+"</td><td>$"+p.price+"</td><td><b>"+p.stock+"</b></td><td>"+(p.barcode||"")+"</td><td>"+p.shop+" - "+tag+"</td><td><button class='smallBtn' onclick='deleteProduct("+m+")'>Delete</button></td></tr>"}
+  stockHtml+="</table>";
+  document.getElementById('dashStockTable').innerHTML=stockHtml;
+}
+function renderAdmin(){renderDashboard()}
 function deleteProduct(i){products.splice(i,1);saveToCloud();renderAll()}
-function resetAll(){if(confirm("Reset?")){sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];products=[{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675"}];balance=0;saveToCloud();renderAll()}}
-function ownerLogin(){var pin=prompt("Enter Owner PIN:");if(pin==="0783"){showTab('admin');alert("Welcome Owner! Check PENDING.");}else{alert("Wrong PIN")}}
-function renderAll(){renderShop();renderCart();renderSellers();renderAdmin();document.getElementById('balance').innerText="Balance: $"+balance.toFixed(2)}
+function resetAll(){if(confirm("Reset?")){sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];products=[{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"1234"}];balance=0;sales=[];totalSold=0;saveToCloud();renderAll()}}
+function ownerLogin(){var pin=prompt("Enter Owner PIN:");if(pin==="0783"){showTab('dashboard');renderDashboard();alert("Welcome Owner! Dashboard is private - customers cannot see stock.");}else{alert("Wrong PIN")}}
+function renderAll(){renderShop();renderCart();renderSellers();renderDashboard();document.getElementById('balance').innerText="Balance: $"+balance.toFixed(2)}
 </script>
 </head>
 <body onload="loadFromCloud();botStart()">
@@ -74,6 +182,7 @@ function renderAll(){renderShop();renderCart();renderSellers();renderAdmin();doc
 <p id="syncStatus" class="sync">Connecting...</p>
 <nav>
 <button onclick="showTab('shop')" class="navBtn activeBtn">Price Table</button>
+<button onclick="showTab('till')" class="navBtn">Till / Sell</button>
 <button onclick="showTab('bot')" class="navBtn">WhatsApp Bot</button>
 <button onclick="showTab('seller')" class="navBtn">Become Seller</button>
 </nav>
@@ -81,37 +190,54 @@ function renderAll(){renderShop();renderCart();renderSellers();renderAdmin();doc
 <input id="search" placeholder="Search ANYTHING - Bread, Potatoes, Shop name, City, Suburb..." oninput="renderShop()">
 <p id="productCount" style="font-size:12px;"></p>
 <div id="productList"></div>
-<h3>🧾 Till - For Shop Owner</h3><div id="cart"></div><h3 id="total">Total: $0.00</h3><button onclick="checkout()">💵 PAY</button><p id="receipt"></p>
+<p style="font-size:11px;color:#888">Stock quantities are private - only Owner sees them in Dashboard.</p>
+</div>
+<div id="till" class="tab hidden">
+<h2>🧾 Till - Sell Fast</h2>
+<div id="scannerBox" class="hidden"><video id="scanVideo" playsinline></video><p id="scanHint" style="font-size:12px;">Point camera at barcode - scanner knows every barcode you added in Admin</p><button onclick="stopScanner()">Close Camera</button></div>
+<button onclick="startScanner()">📷 Scan Barcode With Camera</button>
+<input id="barcode" placeholder="Or type barcode e.g. 1234"><button onclick="scanBarcode()">Add by Barcode</button>
+<div id="cart"></div>
+<h3 id="total">Total: $0.00</h3>
+<label>Payment Method</label><select id="payMethod"><option>Cash</option><option>EcoCash</option><option>Bank Transfer</option><option>USD Cash</option></select>
+<label>Amount Customer Paid $</label><input id="amountPaid" type="number" placeholder="e.g. 10" oninput="updateChange()">
+<p id="changeText">Enter amount customer paid to see change</p>
+<button onclick="checkout()">💵 PAY - Deduct Stock & Print Receipt</button>
+<button onclick="clearCart()">Clear Till</button>
+<p id="receipt"></p>
+<label>Send Receipt to Customer WhatsApp Number</label><input id="receiptPhone" placeholder="Customer phone e.g. 0771234567">
 </div>
 <div id="bot" class="tab hidden">
-<h2>🤖 WhatsApp Bot - Works on WhatsApp Bundle</h2>
-<p style="font-size:13px;">Buyer has no data? They message <b>0783264675</b> on WhatsApp: <i>"Potatoes in Nkulumane"</i> - This bot below shows what the WhatsApp bot will show, straight from the TABLE above.</p>
+<h2>🤖 WhatsApp Bot</h2>
 <div id="chatBox" style="background:#fff;height:220px;overflow:auto;padding:10px;border-radius:8px;border:1px solid #ddd"></div>
 <input id="botInput" placeholder="Type: Potatoes in Nkulumane"><button onclick="sendBot()">Ask Bot</button>
-<a id="waBotLink" href="https://wa.me/263783264675" target="_blank" style="display:none"><button class="waBtn">➡️ Continue This On WhatsApp</button></a>
-<p style="font-size:12px;"><b>To make your real WhatsApp auto-reply:</b> Open WhatsApp Business App > Settings > Business Tools > Away Message / Greeting Message > Paste: "Hi, welcome to PaMusika. Type what you want e.g. Potatoes in Nkulumane and I will check price list for you."</p>
+<a id="waBotLink" href="https://wa.me/263783264675" target="_blank" style="display:none"><button>➡️ Continue This On WhatsApp</button></a>
 </div>
 <div id="seller" class="tab hidden">
 <h2>🚀 Become a Seller - $5/month</h2>
 <div class="ecocashBox"><b>STEP 1: Send $5 EcoCash to 0783264675</b><br>Dial *151# &gt; Send Money<br><b>STEP 2: Send screenshot to Owner on WhatsApp</b></div>
-<input id="sName" placeholder="Your Full Name"><input id="sShop" placeholder="Shop / Company Name"><input id="sPhone" placeholder="Your Phone - USE A DIFFERENT NUMBER FROM OWNER - e.g. 0771234567">
+<input id="sName" placeholder="Your Full Name"><input id="sShop" placeholder="Shop / Company Name"><input id="sPhone" placeholder="Your Phone e.g. 0771234567">
 <label>City - Type Yours</label><input id="sCity" placeholder="Type city e.g. Bulawayo">
 <label>Suburb - Type Yours</label><input id="sSuburb" placeholder="Type suburb e.g. Nkulumane">
 <label><input type="checkbox" id="sPaid" style="width:auto;"> ✅ YES, I sent $5 to 0783264675</label><br><br>
-<a href="https://wa.me/263783264675?text=Hi PaMusika, I sent $5 EcoCash to become a Seller. Here is my screenshot:" target="_blank"><button class="waBtn" type="button">📸 Send Screenshot on WhatsApp</button></a>
+<a href="https://wa.me/263783264675?text=Hi PaMusika, I sent $5 EcoCash to become a Seller. Here is my screenshot:" target="_blank"><button type="button">📸 Send Screenshot on WhatsApp</button></a>
 <button onclick="registerSeller()">Submit - Wait for Approval</button><p id="sellerStatus"></p><h3>My Status</h3><div id="mySellers"></div>
 </div>
-<div id="admin" class="tab hidden">
-<h2>👑 Owner Admin - CHECK ECOCASH & APPROVE</h2>
+<div id="dashboard" class="tab hidden">
+<h2>📊 Owner Dashboard - PRIVATE - Only You See This</h2>
+<div id="dashStats"></div>
+<h3>⚠️ Low Stock Alert - Reorder Soon</h3><div id="dashLow"></div>
+<h3>🧾 Recent Sales</h3><div id="dashSales"></div>
 <h3>⏳ PENDING - Check $5 Then Approve</h3><div id="pendingList"></div>
-<h3>✅ Approved Sellers</h3><div id="approvedList"></div><hr>
-<h2>➕ Add ONE Product</h2><input id="pName" placeholder="Product Name"><input id="pPrice" type="number" placeholder="Price"><input id="pStock" type="number" placeholder="Quantity / Stock"><input id="pShop" placeholder="Shop Name">
+<h3>✅ Approved Sellers</h3><div id="approvedList"></div>
+<hr>
+<h2>➕ Add ONE Product + Barcode - Scanner Learns It</h2><input id="pName" placeholder="Product Name"><input id="pPrice" type="number" placeholder="Price"><input id="pStock" type="number" placeholder="Quantity / Stock - SECRET, only you see"><input id="pShop" placeholder="Shop Name">
 <label>City - Type Yours</label><input id="pCity" placeholder="Type city">
 <label>Suburb - Type Yours</label><input id="pSuburb" placeholder="Type suburb">
-<input id="pPhone" placeholder="Seller Phone"><button onclick="addProduct()">Add to TABLE</button>
-<hr><h2>📦 BULK ADD - 1000 Products At Once</h2><p style="font-size:12px;">Type Shop + City + Suburb + Phone above, then paste:<br>Bread,1,100<br>Meat 1kg,5,50<br>Chips,2,80<br>Each line = Name, Price, Quantity</p><textarea id="bulkBox" rows="8" placeholder="Bread,1,100&#10;Meat 1kg,5,50&#10;Chips,2,80"></textarea><button style="background:#ff9800" onclick="bulkAdd()">📦 Add ALL to TABLE</button>
-<hr><h3>All Products in TABLE</h3><div id="adminList"></div><br><button style="background:#333" onclick="resetAll()">⚠️ RESET</button><br><br><button onclick="showTab('shop')">⬅ Back to Table</button>
+<input id="pBarcode" placeholder="Barcode - e.g. 600123456789 - scanner will know this product"><input id="pPhone" placeholder="Seller Phone"><button onclick="addProduct()">Add to TABLE + Teach Scanner</button>
+<hr><h2>📦 BULK ADD - 1000 Products At Once</h2><p style="font-size:12px;">Each line = Name, Price, Quantity, Barcode<br>Bread,1,100,600123456789<br>Meat 1kg,5,50,600987654321</p><textarea id="bulkBox" rows="8" placeholder="Bread,1,100,600123456789&#10;Meat 1kg,5,50"></textarea><button onclick="bulkAdd()">📦 Add ALL to TABLE</button>
+<hr><h3>📦 Full Stock Table - SECRET - QTY LEFT Only Here</h3><div id="dashStockTable"></div><div id="adminList"></div><br><button onclick="resetAll()">⚠️ RESET</button><br><br><button onclick="showTab('shop')">⬅ Back to Table</button>
 </div>
-<div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login</a> • PaMusika • Table Price List</div>
+<div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login - Dashboard</a> • PaMusika • Stock is Private</div>
 </body>
   </html>
