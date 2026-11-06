@@ -28,24 +28,24 @@ var cart=[];var balance=0;var currentCity="All";var currentSuburb="All";
 function saveToCloud(){
   document.getElementById('syncStatus').innerText="⏳ Saving to Cloud...";
   if(FIREBASE_URL.indexOf("PASTE")!==-1){document.getElementById('syncStatus').innerText="⚠️ Paste Firebase URL in code to go live";return}
-  fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved to Cloud - Everyone sees it!"});
+  fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved to Cloud - Everyone sees it!"}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Saved locally";});
 }
 function loadFromCloud(){
-  renderAll();document.getElementById('syncStatus').textContent='';
-  if(FIREBASE_URL.indexOf("PASTE")!==-1){renderAll();return}
+  renderAll();
+  if(FIREBASE_URL.indexOf("PASTE")!==-1){return}
   document.getElementById('syncStatus').innerText="⏳ Loading sellers from Cloud...";
   fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){
     if(data && data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;document.getElementById('syncStatus').innerText="✅ Live - "+sellers.length+" sellers from Cloud";}
     else{saveToCloud()}
     renderAll();
   }).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved sellers";renderAll()});
-  setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data && data.sellers){sellers=data.sellers;products=data.products||[];renderAll()}})},10000);
+  setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data && data.sellers){sellers=data.sellers;products=data.products||[];renderAll()}}).catch(function(){})},10000);
 }
 function showTab(id){var tabs=document.querySelectorAll('.tab');for(var i=0;i<tabs.length;i++){tabs[i].classList.add('hidden')}document.getElementById(id).classList.remove('hidden');var btns=document.querySelectorAll('.navBtn');for(var j=0;j<btns.length;j++){btns[j].classList.remove('activeBtn')}if(event && event.target){event.target.classList.add('activeBtn')}}
 function setCity(c,el){currentCity=c;currentSuburb="All";var btns=document.querySelectorAll('.cityBtn');for(var i=0;i<btns.length;i++){btns[i].classList.remove('cityActive')}if(el){el.classList.add('cityActive')}renderSuburbs();renderShop()}
 function renderSuburbs(){var div=document.getElementById('suburbRow');if(currentCity==="All"){div.innerHTML="";return}var list=SUBURBS[currentCity]||[];var html="<button class='cityBtn cityActive' onclick=\"setSuburb('All',this)\">All "+currentCity+"</button>";for(var i=0;i<list.length;i++){html+="<button class='cityBtn' onclick=\"setSuburb('"+list[i]+"',this)\">"+list[i]+"</button>"}div.innerHTML=html}
 function setSuburb(s,el){currentSuburb=s;var btns=document.querySelectorAll('#suburbRow .cityBtn');for(var i=0;i<btns.length;i++){btns[i].classList.remove('cityActive')}if(el){el.classList.add('cityActive')}renderShop()}
-function updateSuburbSelect(cityId,subId){var city=document.getElementById(cityId).value;var sel=document.getElementById(subId);var list=SUBURBS[city]||["CBD"];sel.innerHTML="";for(var i=0;i<list.length;i++)}sel.innerHTML+="<option>Other- Type Yours</option>";sel.onchange=function(){if(sel.value.indexOf("Other")>-1){var t=prompt("Type your suburb:");if(t){var o=document.createElement("option");o.text=t;sel.add(o);sel.value=t;}}}
+function updateSuburbSelect(cityId,subId){var city=document.getElementById(cityId).value;var sel=document.getElementById(subId);var list=SUBURBS[city]||["CBD"];sel.innerHTML="";for(var i=0;i<list.length;i++){sel.innerHTML+="<option>"+list[i]+"</option>";}sel.innerHTML+="<option>Other- Type Yours</option>";sel.onchange=function(){if(sel.value.indexOf("Other")>-1){var t=prompt("Type your suburb:");if(t){var o=document.createElement("option");o.text=t;sel.add(o);sel.value=t;}}}}
 function isApproved(phone){for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone&&sellers[i].status==="approved"){return true}}return false}
 function renderShop(){var q=document.getElementById('search').value.toLowerCase();var html="";for(var i=0;i<products.length;i++){var p=products[i];if(!isApproved(p.phone)){continue}if(currentCity!=="All"&&p.city!==currentCity){continue}if(currentSuburb!=="All"&&p.suburb!==currentSuburb){continue}if(p.name.toLowerCase().includes(q)||p.city.toLowerCase().includes(q)||(p.suburb||"").toLowerCase().includes(q)){var wa="https://wa.me/263"+p.phone.substring(1)+"?text=Hi, I want "+p.name+" from PaMusika";html+="<div class='card'><b>"+p.name+"</b> - $"+p.price+" - "+p.stock+" left<br>"+p.shop+" - 📍 "+p.city+" - "+(p.suburb||"")+"<br>📞 Seller: "+p.phone+"<br><a href='"+wa+"' target='_blank'><button class='waBtn'>💬 WhatsApp Seller</button></a><button onclick='addToCart("+i+")'>Add to Till</button></div>"}}document.getElementById('productList').innerHTML=html||"<p>No sellers in "+currentSuburb+", "+currentCity+" yet. Be the first!</p>"}
 function addToCart(i){cart.push(products[i]);renderCart();alert(products[i].name+" added")}
@@ -115,4 +115,4 @@ function renderAll(){renderShop();renderCart();renderSellers();renderAdmin();doc
 </div>
 <div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login</a> • PaMusika Zimbabwe • Auto Cloud • Works on WhatsApp Bundle + Internet Data</div>
 </body>
-</html>
+  </html>
