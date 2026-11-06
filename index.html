@@ -3,29 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PaMusika - Price List</title>
+<title>PaMusika - Zimbabwe's Biggest Marketplace</title>
 <style>
 body{font-family:Arial;margin:0;background:#fff}
-header{background:#008751;color:#fff;text-align:center;padding:14px}header h1{margin:0}
-.waTop{background:#008751;padding:12px;text-align:center}.waTop a{color:#fff;font-weight:bold;text-decoration:none}
-nav{display:flex;gap:5px;padding:10px;background:#eee} .navBtn{flex:1;padding:10px;border:none;background:#fff;font-weight:bold;border-radius:6px;color:#008751}.activeBtn{background:#008751!important;color:#fff!important}
+header{background:#008751;color:#fff;text-align:center;padding:16px 12px}header h1{margin:0;font-size:32px}header p{margin:4px 0;font-size:15px}
+.waTop{background:#008751;padding:12px;text-align:center;border-top:1px solid #fff}.waTop a{color:#fff;font-weight:bold;text-decoration:none}
+nav{display:flex;gap:5px;padding:10px;background:#008751} .navBtn{flex:1;padding:12px;border:2px solid #fff;background:#008751;color:#fff;font-weight:bold;border-radius:8px}.activeBtn{background:#00c853!important;color:#fff!important}
 .tab{padding:10px}.hidden{display:none}
 input,textarea,select{width:100%;padding:12px;margin:6px 0;border:1px solid #ccc;border-radius:6px;box-sizing:border-box}
-button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:none;border-radius:6px;font-weight:bold}
+button{width:100%;padding:12px;margin:6px 0;background:#008751;color:#fff;border:2px solid #008751;border-radius:6px;font-weight:bold}
 table{width:100%;border-collapse:collapse;font-size:13px} th{background:#008751;color:#fff;padding:8px;text-align:left} td{border-bottom:1px solid #ddd;padding:8px} tr:nth-child(even){background:#f0f9f2}
 .card{background:#f0f9f2;padding:10px;margin:8px 0;border-radius:8px;border:1px solid #008751}
 .ecocashBox{background:#f0f9f2;border:2px dashed #008751;padding:12px;border-radius:8px;text-align:center}
 .sync{text-align:center;font-size:12px;color:#008751;font-weight:bold}
 .footer{text-align:center;padding:20px;font-size:12px;color:#888}
-.smallBtn{width:auto;padding:6px 10px;margin:2px;font-size:12px}
-.qtyBtn{width:32px;padding:6px;margin:0 2px}
+.smallBtn{width:auto;padding:6px 10px;margin:2px;font-size:12px;background:#008751!important;color:#fff!important;border:1px solid #008751}
+.qtyBtn{width:32px;padding:6px;margin:0 2px;background:#008751!important;color:#fff!important}
 .receiptBox{background:#fff;border:2px dashed #008751;padding:14px;border-radius:8px;font-family:monospace}
 video{width:100%;border-radius:8px;background:#000}
 .dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dashCard{background:#008751;color:#fff;padding:14px;border-radius:10px;text-align:center}
 .dashCard b{font-size:22px;display:block}
 .dashCard span{font-size:12px}
-.lowCard{background:#fff3e0;border:2px solid #ff9800;padding:10px;border-radius:8px;margin:6px 0}
+.lowCard{background:#f0f9f2;border:2px solid #008751;padding:10px;border-radius:8px;margin:6px 0}
 .statRow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee;font-size:13px}
 </style>
 <script>
@@ -35,9 +35,9 @@ var products=[
 {name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"1234"},
 {name:"Tomatoes",price:1.5,stock:50,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"5678"}
 ];
-var cart=[];var balance=0;var lastReceipt="";var lastTotal=0;var scannerStream=null;var sales=[];var totalSold=0;
-function saveToCloud(){document.getElementById('syncStatus').innerText="⏳ Saving...";fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance,sales:sales,totalSold:totalSold})}).then(function(){document.getElementById('syncStatus').innerText="✅ Saved - Everyone sees it!"}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";});}
-function loadFromCloud(){renderAll();document.getElementById('syncStatus').innerText="⏳ Loading...";fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;sales=data.sales||[];totalSold=data.totalSold||0;document.getElementById('syncStatus').innerText="✅ Live - "+products.length+" products";}else{saveToCloud()}renderAll();}).catch(function(){document.getElementById('syncStatus').innerText="⚠️ Offline - Showing saved";renderAll();});setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];sales=data.sales||[];renderAll()}}).catch(function(){})},10000);}
+var cart=[];var balance=0;var lastReceipt="";var scannerStream=null;var sales=[];var totalSold=0;
+function saveToCloud(){var el=document.getElementById('syncStatus');if(el)el.innerText="⏳ Saving...";fetch(FIREBASE_URL+"/pamusika.json",{method:"PUT",body:JSON.stringify({sellers:sellers,products:products,balance:balance,sales:sales,totalSold:totalSold})}).then(function(){if(el)el.innerText="✅ Saved - Everyone sees it!"}).catch(function(){if(el)el.innerText="⚠️ Offline";});}
+function loadFromCloud(){renderAll();var el=document.getElementById('syncStatus');if(el)el.innerText="⏳ Loading...";fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];balance=data.balance||0;sales=data.sales||[];totalSold=data.totalSold||0;if(el)el.innerText="✅ Live - "+products.length+" products";}else{saveToCloud()}renderAll();}).catch(function(){if(el)el.innerText="⚠️ Offline - Showing saved";renderAll();});setInterval(function(){fetch(FIREBASE_URL+"/pamusika.json").then(function(r){return r.json()}).then(function(data){if(data&&data.sellers){sellers=data.sellers;products=data.products||[];sales=data.sales||[];renderAll()}}).catch(function(){})},10000);}
 function showTab(id){var t=document.querySelectorAll('.tab');for(var i=0;i<t.length;i++){t[i].classList.add('hidden')}document.getElementById(id).classList.remove('hidden');var b=document.querySelectorAll('.navBtn');for(var j=0;j<b.length;j++){b[j].classList.remove('activeBtn')}if(event&&event.target){event.target.classList.add('activeBtn')}}
 function isApproved(phone){for(var i=0;i<sellers.length;i++){if(sellers[i].phone===phone&&sellers[i].status==="approved"){return true}}return false}
 function renderShop(){
@@ -80,11 +80,10 @@ function scanBarcode(){
   if(!code){alert("Type barcode or scan with camera");return}
   var foundIdx=-1;
   for(var i=0;i<products.length;i++){if(String(products[i].barcode)===String(code)){foundIdx=i;break}}
-  if(foundIdx>=0){addToCartByIndex(foundIdx);document.getElementById('barcode').value="";alert(products[foundIdx].name+" added to Till - Barcode knows it!")}else{alert("Barcode "+code+" NOT in system. This product was never added with this barcode. Add it in Admin first with barcode "+code)}
+  if(foundIdx>=0){addToCartByIndex(foundIdx);document.getElementById('barcode').value="";alert(products[foundIdx].name+" added to Till - Barcode knows it!")}else{alert("Barcode "+code+" NOT in system. Add it in Admin first with barcode "+code)}
 }
 async function startScanner(){
-  var box=document.getElementById('scannerBox');
-  box.classList.remove('hidden');
+  var box=document.getElementById('scannerBox');box.classList.remove('hidden');
   var video=document.getElementById('scanVideo');
   try{
     scannerStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}});
@@ -93,27 +92,16 @@ async function startScanner(){
       var detector=new BarcodeDetector({formats:['ean_13','ean_8','code_128','upc_a','qr_code']});
       var loop=setInterval(async function(){
         if(!scannerStream){clearInterval(loop);return}
-        try{
-          var codes=await detector.detect(video);
-          if(codes && codes.length>0){
-            var val=codes[0].rawValue;
-            document.getElementById('barcode').value=val;
-            stopScanner();
-            scanBarcode();
-          }
-        }catch(e){}
+        try{var codes=await detector.detect(video);if(codes && codes.length>0){var val=codes[0].rawValue;document.getElementById('barcode').value=val;stopScanner();scanBarcode();}}catch(e){}
       },500);
-    } else {
-      document.getElementById('scanHint').innerText="Camera open - read barcode number and type it below. Your phone does not support auto-detect.";
-    }
+    } else {document.getElementById('scanHint').innerText="Camera open - read barcode number and type it below.";}
   }catch(e){alert("Camera blocked - allow camera permission, or type barcode manually.");box.classList.add('hidden');}
 }
 function stopScanner(){if(scannerStream){scannerStream.getTracks().forEach(function(t){t.stop()});scannerStream=null}document.getElementById('scannerBox').classList.add('hidden')}
 function updateChange(){
   var total=0;for(var i=0;i<cart.length;i++){total+=cart[i].price*cart[i].qty}
   var paid=parseFloat(document.getElementById('amountPaid').value)||0;
-  var change=paid-total;
-  document.getElementById('changeText').innerText=paid>0?"Change: $"+change.toFixed(2):"Enter amount customer paid to see change";
+  document.getElementById('changeText').innerText=paid>0?"Change: $"+(paid-total).toFixed(2):"Enter amount customer paid to see change";
 }
 function checkout(){
   if(cart.length===0){alert("Cart empty");return}
@@ -124,22 +112,13 @@ function checkout(){
   var date=new Date().toLocaleString();
   var shopName=cart.length>0?products[cart[0].idx].shop:"PaMusika";
   var receipt="===== PaMusika RECEIPT =====\n"+shopName+"\n"+date+"\n--------------------------\n";
-  for(var i=0;i<cart.length;i++){
-    var c=cart[i];
-    receipt+=c.name+" x "+c.qty+" @ $"+c.price+" = $"+(c.price*c.qty).toFixed(2)+"\n";
-    var p=products[c.idx];
-    p.stock=Math.max(0,p.stock-c.qty);
-  }
-  receipt+="--------------------------\nTOTAL: $"+total.toFixed(2)+"\nPAYMENT: "+method+"\nPAID: $"+paid.toFixed(2)+"\nCHANGE: $"+change.toFixed(2)+"\nEcoCash: 0783264675\nThank you! Come again 🇿🇼";
-  lastReceipt=receipt;lastTotal=total;
-  balance+=total;totalSold+=total;
-  sales.unshift({date:date,total:total,method:method,items:cart.map(function(c){return c.name+" x"+c.qty}).join(", ")});
-  if(sales.length>50){sales=sales.slice(0,50)}
+  for(var i=0;i<cart.length;i++){var c=cart[i];receipt+=c.name+" x "+c.qty+" @ $"+c.price+" = $"+(c.price*c.qty).toFixed(2)+"\n";var p=products[c.idx];p.stock=Math.max(0,p.stock-c.qty);}
+  receipt+="--------------------------\nTOTAL: $"+total.toFixed(2)+"\nPAYMENT: "+method+"\nPAID: $"+paid.toFixed(2)+"\nCHANGE: $"+change.toFixed(2)+"\nEcoCash: 0783264675\nThank you! Come again";
+  lastReceipt=receipt;balance+=total;totalSold+=total;
+  sales.unshift({date:date,total:total,method:method,items:cart.map(function(c){return c.name+" x"+c.qty}).join(", ")});if(sales.length>50){sales=sales.slice(0,50)}
   cart=[];
   document.getElementById('receipt').innerHTML="<div class='receiptBox'><pre style='white-space:pre-wrap;margin:0'>"+receipt+"</pre><br><button onclick='printReceipt()'>🖨️ Print Receipt</button><button onclick='sendReceiptWhatsApp()'>💬 Send Receipt on WhatsApp</button><button onclick='clearReceipt()'>Clear Receipt</button></div>";
-  document.getElementById('amountPaid').value="";
-  saveToCloud();renderAll();renderCart();
-  alert("Sale done! Stock deducted. Change: $"+change.toFixed(2));
+  document.getElementById('amountPaid').value="";saveToCloud();renderAll();renderCart();alert("Sale done! Stock deducted. Change: $"+change.toFixed(2));
 }
 function printReceipt(){var w=window.open('','','width=400,height=600');w.document.write("<pre>"+lastReceipt+"</pre>");w.document.close();w.print();}
 function sendReceiptWhatsApp(){var num=document.getElementById('receiptPhone').value.trim()||"0783264675";var link="https://wa.me/263"+num.substring(1)+"?text="+encodeURIComponent(lastReceipt);window.open(link,'_blank');}
@@ -150,8 +129,8 @@ function registerSeller(){var name=document.getElementById('sName').value.trim()
 function renderSellers(){var pend="";var appr="";for(var i=0;i<sellers.length;i++){var s=sellers[i];if(s.status==="pending"){pend+="<div class='card'><b>⏳ PENDING - "+s.shop+"</b> - "+s.name+"<br>📞 "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"<br>💰 Claims $5 sent - CHECK ECOCASH!<br><button onclick='approveSeller("+i+")'>✅ APPROVE - I Got $5</button><button onclick='rejectSeller("+i+")'>✅ REJECT - No Payment</button></div>"}else{appr+="<div class='card'>✅ "+s.shop+" - "+s.name+" - "+s.phone+" - "+s.city+" - "+(s.suburb||"")+"</div>"}}document.getElementById('pendingList').innerHTML=pend||"<p>No pending sellers</p>";document.getElementById('approvedList').innerHTML=appr;var my="";for(var j=0;j<sellers.length;j++){my+="<div class='card'>"+sellers[j].shop+" - "+sellers[j].phone+" - "+sellers[j].city+" - "+(sellers[j].suburb||"")+" - "+sellers[j].status.toUpperCase()+"</div>"}document.getElementById('mySellers').innerHTML=my;}
 function approveSeller(i){sellers[i].status="approved";saveToCloud();renderAll();alert(sellers[i].shop+" APPROVED!");}
 function rejectSeller(i){sellers.splice(i,1);saveToCloud();renderAll();}
-function addProduct(){var name=document.getElementById('pName').value.trim();var price=parseFloat(document.getElementById('pPrice').value);var stock=parseInt(document.getElementById('pStock').value);var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";var barcode=document.getElementById('pBarcode').value.trim()||Date.now().toString().slice(-4);if(!name||!price){alert("Fill Name + Price");return}if(!city){alert("Type City");return}if(!suburb){alert("Type Suburb");return}products.push({name:name,price:price,stock:stock||0,shop:shop,city:city,suburb:suburb,phone:phone,barcode:barcode});saveToCloud();renderAll();if(isApproved(phone)){alert(name+" Added! Barcode "+barcode+" saved - scanner now knows it.")}else{alert(name+" Saved! Will show after Owner approves $5.")}}
-function bulkAdd(){var text=document.getElementById('bulkBox').value.trim();var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!text){alert("Paste products first");return}if(!city||!suburb){alert("Type City + Suburb first");return}var lines=text.split("\n");var added=0;for(var i=0;i<lines.length;i++){var parts=lines[i].split(",");if(parts.length<2)continue;var n=parts[0].trim();var pr=parseFloat(parts[1]);var st=parseInt(parts[2])||0;var bc=parts[3]?parts[3].trim():Date.now().toString().slice(-4)+i;if(!n||!pr)continue;products.push({name:n,price:pr,stock:st,shop:shop,city:city,suburb:suburb,phone:phone,barcode:bc});added++;}saveToCloud();renderAll();alert(added+" products added! Scanner now knows all their barcodes.");document.getElementById('bulkBox').value="";}
+function addProduct(){var name=document.getElementById('pName').value.trim();var price=parseFloat(document.getElementById('pPrice').value);var stock=parseInt(document.getElementById('pStock').value);var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";var barcode=document.getElementById('pBarcode').value.trim()||Date.now().toString().slice(-4);if(!name||!price){alert("Fill Name + Price");return}if(!city){alert("Type City");return}if(!suburb){alert("Type Suburb");return}products.push({name:name,price:price,stock:stock||0,shop:shop,city:city,suburb:suburb,phone:phone,barcode:barcode});saveToCloud();renderAll();alert(name+" Added! Barcode "+barcode+" saved - scanner now knows it.")}
+function bulkAdd(){var text=document.getElementById('bulkBox').value.trim();var shop=document.getElementById('pShop').value.trim()||"My Shop";var city=document.getElementById('pCity').value.trim();var suburb=document.getElementById('pSuburb').value.trim();var phone=document.getElementById('pPhone').value.trim()||"0783264675";if(!text){alert("Paste products first");return}if(!city||!suburb){alert("Type City + Suburb first");return}var lines=text.split("\n");var added=0;for(var i=0;i<lines.length;i++){var parts=lines[i].split(",");if(parts.length<2)continue;var n=parts[0].trim();var pr=parseFloat(parts[1]);var st=parseInt(parts[2])||0;var bc=parts[3]?parts[3].trim():Date.now().toString().slice(-4)+i;if(!n||!pr)continue;products.push({name:n,price:pr,stock:st,shop:shop,city:city,suburb:suburb,phone:phone,barcode:bc});added++;}saveToCloud();renderAll();alert(added+" products added!");document.getElementById('bulkBox').value="";}
 function renderDashboard(){
   var approvedSellers=0;var pendingSellers=0;
   for(var i=0;i<sellers.length;i++){if(sellers[i].status==="approved"){approvedSellers++}else{pendingSellers++}}
@@ -172,12 +151,12 @@ function renderDashboard(){
 function renderAdmin(){renderDashboard()}
 function deleteProduct(i){products.splice(i,1);saveToCloud();renderAll()}
 function resetAll(){if(confirm("Reset?")){sellers=[{name:"Tman",shop:"Tman Vegetables",phone:"0783264675",city:"Bulawayo",suburb:"Nkulumane",status:"approved"}];products=[{name:"Potatoes",price:1,stock:32,shop:"Tman Vegetables",city:"Bulawayo",suburb:"Nkulumane",phone:"0783264675",barcode:"1234"}];balance=0;sales=[];totalSold=0;saveToCloud();renderAll()}}
-function ownerLogin(){var pin=prompt("Enter Owner PIN:");if(pin==="0783"){showTab('dashboard');renderDashboard();alert("Welcome Owner! Dashboard is private - customers cannot see stock.");}else{alert("Wrong PIN")}}
-function renderAll(){renderShop();renderCart();renderSellers();renderDashboard();document.getElementById('balance').innerText="Balance: $"+balance.toFixed(2)}
+function ownerLogin(){var pin=prompt("Enter Owner PIN:");if(pin==="0783"){showTab('dashboard');renderDashboard();alert("Welcome Owner! Dashboard is private.");}else{alert("Wrong PIN")}}
+function renderAll(){renderShop();renderCart();renderSellers();renderDashboard();var b=document.getElementById('balance');if(b){b.innerText="Balance: $"+balance.toFixed(2)}}
 </script>
 </head>
 <body onload="loadFromCloud();botStart()">
-<header><h1>🛒 PaMusika</h1><p>Zimbabwe Price List - All Shops In One Table 🇿🇼</p><p id="balance">Balance: $0.00</p></header>
+<header><h1>🛒 PaMusika</h1><p>Zimbabwe's biggest marketplace.</p><p>Murikutengei nasi tikupatsirei</p><p>Lithengani lamhlanje silisize</p></header>
 <div class="waTop"><a href="https://wa.me/263783264675?text=Hi PaMusika, I want to buy:">💬 NO DATA? Order on WhatsApp Bundle - Tap Here</a></div>
 <p id="syncStatus" class="sync">Connecting...</p>
 <nav>
@@ -190,11 +169,10 @@ function renderAll(){renderShop();renderCart();renderSellers();renderDashboard()
 <input id="search" placeholder="Search ANYTHING - Bread, Potatoes, Shop name, City, Suburb..." oninput="renderShop()">
 <p id="productCount" style="font-size:12px;"></p>
 <div id="productList"></div>
-<p style="font-size:11px;color:#888">Stock quantities are private - only Owner sees them in Dashboard.</p>
 </div>
 <div id="till" class="tab hidden">
 <h2>🧾 Till - Sell Fast</h2>
-<div id="scannerBox" class="hidden"><video id="scanVideo" playsinline></video><p id="scanHint" style="font-size:12px;">Point camera at barcode - scanner knows every barcode you added in Admin</p><button onclick="stopScanner()">Close Camera</button></div>
+<div id="scannerBox" class="hidden"><video id="scanVideo" playsinline></video><p id="scanHint" style="font-size:12px;">Point camera at barcode</p><button onclick="stopScanner()">Close Camera</button></div>
 <button onclick="startScanner()">📷 Scan Barcode With Camera</button>
 <input id="barcode" placeholder="Or type barcode e.g. 1234"><button onclick="scanBarcode()">Add by Barcode</button>
 <div id="cart"></div>
@@ -226,18 +204,18 @@ function renderAll(){renderShop();renderCart();renderSellers();renderDashboard()
 <div id="dashboard" class="tab hidden">
 <h2>📊 Owner Dashboard - PRIVATE - Only You See This</h2>
 <div id="dashStats"></div>
-<h3>⚠️ Low Stock Alert - Reorder Soon</h3><div id="dashLow"></div>
+<h3>⚠️ Low Stock Alert</h3><div id="dashLow"></div>
 <h3>🧾 Recent Sales</h3><div id="dashSales"></div>
 <h3>⏳ PENDING - Check $5 Then Approve</h3><div id="pendingList"></div>
 <h3>✅ Approved Sellers</h3><div id="approvedList"></div>
 <hr>
-<h2>➕ Add ONE Product + Barcode - Scanner Learns It</h2><input id="pName" placeholder="Product Name"><input id="pPrice" type="number" placeholder="Price"><input id="pStock" type="number" placeholder="Quantity / Stock - SECRET, only you see"><input id="pShop" placeholder="Shop Name">
+<h2>➕ Add ONE Product + Barcode</h2><input id="pName" placeholder="Product Name"><input id="pPrice" type="number" placeholder="Price"><input id="pStock" type="number" placeholder="Quantity / Stock - SECRET"><input id="pShop" placeholder="Shop Name">
 <label>City - Type Yours</label><input id="pCity" placeholder="Type city">
 <label>Suburb - Type Yours</label><input id="pSuburb" placeholder="Type suburb">
-<input id="pBarcode" placeholder="Barcode - e.g. 600123456789 - scanner will know this product"><input id="pPhone" placeholder="Seller Phone"><button onclick="addProduct()">Add to TABLE + Teach Scanner</button>
-<hr><h2>📦 BULK ADD - 1000 Products At Once</h2><p style="font-size:12px;">Each line = Name, Price, Quantity, Barcode<br>Bread,1,100,600123456789<br>Meat 1kg,5,50,600987654321</p><textarea id="bulkBox" rows="8" placeholder="Bread,1,100,600123456789&#10;Meat 1kg,5,50"></textarea><button onclick="bulkAdd()">📦 Add ALL to TABLE</button>
-<hr><h3>📦 Full Stock Table - SECRET - QTY LEFT Only Here</h3><div id="dashStockTable"></div><div id="adminList"></div><br><button onclick="resetAll()">⚠️ RESET</button><br><br><button onclick="showTab('shop')">⬅ Back to Table</button>
+<input id="pBarcode" placeholder="Barcode - e.g. 600123456789"><input id="pPhone" placeholder="Seller Phone"><button onclick="addProduct()">Add to TABLE + Teach Scanner</button>
+<hr><h2>📦 BULK ADD - 1000 Products At Once</h2><p style="font-size:12px;">Each line = Name, Price, Quantity, Barcode<br>Bread,1,100,600123456789</p><textarea id="bulkBox" rows="8" placeholder="Bread,1,100,600123456789&#10;Meat 1kg,5,50"></textarea><button onclick="bulkAdd()">📦 Add ALL to TABLE</button>
+<hr><h3>📦 Full Stock Table - SECRET - QTY LEFT Only Here</h3><div id="dashStockTable"></div><br><button onclick="resetAll()">⚠️ RESET</button><br><br><button onclick="showTab('shop')">⬅ Back to Table</button>
 </div>
-<div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login - Dashboard</a> • PaMusika • Stock is Private</div>
+<div class="footer"><a href="#" onclick="ownerLogin();return false;">Owner Login - Dashboard</a> • PaMusika</div>
 </body>
   </html>
